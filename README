@@ -104,3 +104,11 @@ What it should be able to do in the future:
 
 	To enable pcap logging, the logfile must be turned on by adding
 	'pcapbtbb' to the logtypes= line of the kismet.conf.
+
+
+-------------------------------------------------------------------------------
+
+To rebuild, go to Kismet install directory:
+$ make && make plugins
+$ sudo make suidinstall
+$ sudo make plugins-install

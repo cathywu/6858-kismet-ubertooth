@@ -41,6 +41,10 @@
 #include "packetsource_ubertooth.h"
 #include "packet_btbb.h"
 
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+
 PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, string in_interface,
 									   vector<opt_pair> *in_opts) : 
 	KisPacketSource(in_globalreg, in_interface, in_opts) {
