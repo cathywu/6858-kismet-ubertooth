@@ -205,6 +205,7 @@ void *ubertooth_cap_thread(void *arg)
 	}
 
 	while (ubertooth->thread_active) {
+
 		while (!ubertooth->really_full) {
 			r = libusb_handle_events(NULL);
 			if (r < 0) {
