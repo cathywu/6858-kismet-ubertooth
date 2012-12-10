@@ -29,6 +29,10 @@
 #include <packetsource.h>
 #include <map>
 
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+
 /* BANK_LEN must be >= AC_LEN */
 #define AC_LEN    72
 #define NUM_BANKS 10
@@ -38,12 +42,8 @@ extern "C" {
 	#include <bluetooth_packet.h>
 	#include <bluetooth_piconet.h>
 	#include "ubertooth.h"
-
-        #include <bluetooth/bluetooth.h>
-        #include <bluetooth/hci.h>
-        #include <bluetooth/hci_lib.h>
-        #include <bluetooth_packet.h>
         #include <bluetooth_piconet.h>
+        #include <bluetooth_packet.h>
 }
 
 #define USE_PACKETSOURCE_UBERTOOTH
@@ -147,6 +147,7 @@ protected:
 	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t);
 	friend void cb_xfer(struct libusb_transfer *);
 	friend void *ubertooth_cap_thread(void *);
+	friend void *ubertooth_follow_setup(void *);
 };
 
 #endif

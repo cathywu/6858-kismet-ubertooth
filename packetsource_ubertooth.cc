@@ -264,7 +264,9 @@ void *ubertooth_cap_thread(void *arg)
 		}
 		ubertooth->really_full = 0;
 		fflush(stderr);
+	        printf("6858 debug - cap_thread loop\n");
 	}
+	printf("6858 debug - cap_thread end\n");
 
 out:
 	ubertooth->thread_active = -1;
@@ -276,6 +278,8 @@ out:
 // Capture thread to fake async io
 void *ubertooth_follow_setup(void *arg)
 {
+	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
+
         printf("6858 debug - start\n");
         /* Start Ben's code */
 
@@ -296,9 +300,9 @@ void *ubertooth_follow_setup(void *arg)
 	pn.LAP = strtol("0xf6eeed", &end, 16);
 	pn.UAP = strtol("0x4c", &end, 16);
 
-        // dev_id = hci_devid(bt_dev);
-        // sock = hci_open_dev(dev_id);
-        // hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+        dev_id = hci_devid(bt_dev);
+        sock = hci_open_dev(dev_id);
+        hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
         
 	printf("6858 debug - Address given, assuming address is remote\n");
 	sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
@@ -307,13 +311,13 @@ void *ubertooth_follow_setup(void *arg)
 			(pn.LAP >> 8) & 0xFF,
 			pn.LAP & 0xFF
 	);
-	// str2ba(addr, &bdaddr);
-	// printf("6858 debug - Address: %s\n", addr);
+	str2ba(addr, &bdaddr);
+	printf("6858 debug - Address: %s\n", addr);
 
-	// if (hci_devinfo(dev_id, &di) < 0) {
-	// 		perror("Can't get device info");
-	// 		exit(1);
-	// }
+	if (hci_devinfo(dev_id, &di) < 0) {
+			perror("Can't get device info");
+			exit(1);
+	}
 
 	// if (hci_create_connection(sock, &bdaddr,
 	// 						htobs(di.pkt_type & ACL_PTYPE_MASK),
@@ -335,6 +339,9 @@ void *ubertooth_follow_setup(void *arg)
 	// }
 
 	/* End Ben's code */
+
+	// Unlock packet thread
+	pthread_mutex_unlock(&(ubertooth->packet_lock)); // 6858
 }
 
 int PacketSource_Ubertooth::OpenSource() {
@@ -347,12 +354,13 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 
+	printf("6858 debug - 1\n");
+	pthread_mutex_lock(&(packet_lock)); // 6858
+
         // Ubertooth follow setup
 	pthread_create(&follow_thread, NULL, ubertooth_follow_setup, this);
-
-	// Unlock packet thread
-	pthread_mutex_destroy(&packet_lock);
-
+        pthread_join(follow_thread, NULL);
+	
 	if ((devh = ubertooth_start(-1)) == NULL) {
 		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
 				string(strerror(errno)), MSGFLAG_ERROR);
@@ -370,13 +378,13 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 
-	if (pthread_mutex_init(&packet_lock, NULL) < 0) {
-		_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
-			 string(strerror(errno)), MSGFLAG_ERROR);
-		ubertooth_stop(devh);
-		devh = NULL;
-		return 0;
-	}
+	// if (pthread_mutex_init(&packet_lock, NULL) < 0) { // error on lock
+	// 	_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
+	// 		 string(strerror(errno)), MSGFLAG_ERROR);
+	// 	ubertooth_stop(devh);
+	// 	devh = NULL;
+	// 	return 0;
+	// }
 
 	/* Launch a capture thread */
 	thread_active = 1;
