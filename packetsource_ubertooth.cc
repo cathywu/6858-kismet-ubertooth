@@ -284,22 +284,24 @@ void *ubertooth_follow_setup(void *arg)
 	printf("6858 debug - start\n");
 	/* Start Ben's code */
 
-	int sock, dev_id, delay = 5;
+	int sock, dev_id = 5;
+        // int delay = 5;
+        ubertooth->delay = 5;
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
-	uint32_t clock;
+	// uint32_t clock;
 	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;
-	piconet pn;
+	// piconet pn;
 	struct hci_dev_info di;
 	int cc = 0;
 	int opts;
 
-	init_piconet(&pn);
+	init_piconet(&(ubertooth->pn));
 
-	pn.LAP = strtol("F6EEED", &end, 16);
-	pn.UAP = strtol("4C", &end, 16);
+	ubertooth->pn.LAP = strtol("F6EEED", &end, 16);
+	ubertooth->pn.UAP = strtol("4C", &end, 16);
 
 	dev_id = hci_devid(bt_dev);
 	sock = hci_open_dev(dev_id);
@@ -311,14 +313,14 @@ void *ubertooth_follow_setup(void *arg)
         exit(1);
     }
     
-	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+	hci_read_clock(sock, 0, 0, &(ubertooth->clock), &accuracy, 0);
         
 	printf("6858 debug - Address given, assuming address is remote\n");
 	sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
-			pn.UAP,
-			(pn.LAP >> 16) & 0xFF,
-			(pn.LAP >> 8) & 0xFF,
-			pn.LAP & 0xFF
+			ubertooth->pn.UAP,
+			(ubertooth->pn.LAP >> 16) & 0xFF,
+			(ubertooth->pn.LAP >> 8) & 0xFF,
+			ubertooth->pn.LAP & 0xFF
 	);
 	str2ba(addr, &bdaddr);
 	printf("6858 debug - Address: %s\n", addr);
@@ -340,7 +342,7 @@ void *ubertooth_follow_setup(void *arg)
 	if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
 			perror("Reading clock offset failed");
 	}
-	clock += offset;
+	ubertooth->clock += offset;
 	
 	if (cc) {
 		usleep(10000);
@@ -376,7 +378,7 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 	
-	//rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
+	rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {

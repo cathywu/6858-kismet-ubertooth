@@ -143,6 +143,9 @@ protected:
 	int handle_header(packet*);
 	void decode_pkt(packet*, piconet*);
 
+	uint32_t clock;
+	piconet pn;
+        int delay;
 
 	friend void enqueue(PacketSource_Ubertooth *, char *, uint32_t, uint32_t, uint8_t);
 	friend void cb_xfer(struct libusb_transfer *);
