@@ -44,6 +44,8 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include <bluetooth_packet.h>
+#include <bluetooth_piconet.h>
 
 PacketSource_Ubertooth::PacketSource_Ubertooth(GlobalRegistry *in_globalreg, string in_interface,
 									   vector<opt_pair> *in_opts) : 
@@ -203,6 +205,7 @@ void *ubertooth_cap_thread(void *arg)
 	}
 
 	while (ubertooth->thread_active) {
+
 		while (!ubertooth->really_full) {
 			r = libusb_handle_events(NULL);
 			if (r < 0) {
