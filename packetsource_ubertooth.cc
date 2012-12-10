@@ -277,7 +277,7 @@ int PacketSource_Ubertooth::OpenSource() {
 
         /* Start Ben's code */
 
-        int sock, dev_id = 5;
+        int sock, dev_id, delay = 5;
         char *end, ubertooth_device = -1;
         char *bt_dev = "hci0";
         char addr[19] = { 0 };
@@ -340,7 +340,7 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 	
-	// rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
+	rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
 
 
 	/* Initialize the pipe, mutex, and reading thread */
