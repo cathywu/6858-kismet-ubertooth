@@ -328,15 +328,15 @@ void *ubertooth_follow_setup(void *arg)
 	sleep(1);
 	cc = 1;
 
-	// if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-	// 		perror("Reading clock offset failed");
-	// }
-	// clock += offset;
-	// 
-	// if (cc) {
-	// 	usleep(10000);
-	// 	hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-	// }
+	if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+			perror("Reading clock offset failed");
+	}
+	clock += offset;
+	
+	if (cc) {
+		usleep(10000);
+		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+	}
 
 	/* End Ben's code */
 
