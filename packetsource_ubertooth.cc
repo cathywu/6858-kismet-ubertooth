@@ -273,8 +273,9 @@ out:
 	pthread_exit((void *) 0);
 }
 
-int PacketSource_Ubertooth::OpenSource() {
- 
+// Capture thread to fake async io
+void *ubertooth_follow_setup(void *arg)
+{
         printf("6858 debug - start\n");
         /* Start Ben's code */
 
@@ -298,14 +299,14 @@ int PacketSource_Ubertooth::OpenSource() {
         // dev_id = hci_devid(bt_dev);
         // sock = hci_open_dev(dev_id);
         // hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
-        // 
-	// printf("6858 debug - Address given, assuming address is remote\n");
-	// sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
-	// 		pn.UAP,
-	// 		(pn.LAP >> 16) & 0xFF,
-	// 		(pn.LAP >> 8) & 0xFF,
-	// 		pn.LAP & 0xFF
-	// );
+        
+	printf("6858 debug - Address given, assuming address is remote\n");
+	sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
+			pn.UAP,
+			(pn.LAP >> 16) & 0xFF,
+			(pn.LAP >> 8) & 0xFF,
+			pn.LAP & 0xFF
+	);
 	// str2ba(addr, &bdaddr);
 	// printf("6858 debug - Address: %s\n", addr);
 
@@ -320,8 +321,8 @@ int PacketSource_Ubertooth::OpenSource() {
 	// 		perror("Can't create connection");
 	// 		exit(1);
 	// }
-	// sleep(1);
-	// cc = 1;
+	sleep(1);
+	cc = 1;
 
 	// if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
 	// 		perror("Reading clock offset failed");
@@ -334,6 +335,23 @@ int PacketSource_Ubertooth::OpenSource() {
 	// }
 
 	/* End Ben's code */
+}
+
+int PacketSource_Ubertooth::OpenSource() {
+
+        // Lock packet thread for ubertooth follow setup
+	if (pthread_mutex_init(&packet_lock, NULL) < 0) {
+		_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
+			 string(strerror(errno)), MSGFLAG_ERROR);
+	        printf("6858 debug - can't lock packet_lock\n");
+		return 0;
+	}
+
+        // Ubertooth follow setup
+	pthread_create(&follow_thread, NULL, ubertooth_follow_setup, this);
+
+	// Unlock packet thread
+	pthread_mutex_destroy(&packet_lock);
 
 	if ((devh = ubertooth_start(-1)) == NULL) {
 		_MSG("Ubertooth '" + name + "' failed to open device '" + usb_dev + "': " +
@@ -342,7 +360,6 @@ int PacketSource_Ubertooth::OpenSource() {
 	}
 	
 	// rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
-
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {

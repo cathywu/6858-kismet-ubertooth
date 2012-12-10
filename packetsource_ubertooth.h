@@ -38,6 +38,12 @@ extern "C" {
 	#include <bluetooth_packet.h>
 	#include <bluetooth_piconet.h>
 	#include "ubertooth.h"
+
+        #include <bluetooth/bluetooth.h>
+        #include <bluetooth/hci.h>
+        #include <bluetooth/hci_lib.h>
+        #include <bluetooth_packet.h>
+        #include <bluetooth_piconet.h>
 }
 
 #define USE_PACKETSOURCE_UBERTOOTH
@@ -94,6 +100,7 @@ protected:
 	int thread_active;
 
 	pthread_t cap_thread;
+	pthread_t follow_thread; // 6.858
 
 	// Named USB interface
 	string usb_dev;
