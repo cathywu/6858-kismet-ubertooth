@@ -37,6 +37,7 @@
 #include <globalregistry.h>
 #include <dumpfile.h>
 #include <pcap.h>
+#include <fcntl.h>
 
 #include "packetsource_ubertooth.h"
 #include "packet_btbb.h"
@@ -280,29 +281,37 @@ void *ubertooth_follow_setup(void *arg)
 {
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
 
-        printf("6858 debug - start\n");
-        /* Start Ben's code */
+	printf("6858 debug - start\n");
+	/* Start Ben's code */
 
-        int sock, dev_id, delay = 5;
-        char *end, ubertooth_device = -1;
-        char *bt_dev = "hci0";
-        char addr[19] = { 0 };
-        // struct libusb_device_handle *devh = NULL;
-        uint32_t clock;
-        uint16_t accuracy, handle, offset;
-        bdaddr_t bdaddr;
-        piconet pn;
-        struct hci_dev_info di;
-        int cc = 0;
+	int sock, dev_id, delay = 5;
+	char *end, ubertooth_device = -1;
+	char *bt_dev = "hci0";
+	char addr[19] = { 0 };
+	uint32_t clock;
+	uint16_t accuracy, handle, offset;
+	bdaddr_t bdaddr;
+	piconet pn;
+	struct hci_dev_info di;
+	int cc = 0;
+	int opts;
 
-        init_piconet(&pn);
+	init_piconet(&pn);
 
-	pn.LAP = strtol("0xf6eeed", &end, 16);
-	pn.UAP = strtol("0x4c", &end, 16);
+	pn.LAP = strtol("F6EEED", &end, 16);
+	pn.UAP = strtol("4C", &end, 16);
 
-        dev_id = hci_devid(bt_dev);
-        sock = hci_open_dev(dev_id);
-        hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+	dev_id = hci_devid(bt_dev);
+	sock = hci_open_dev(dev_id);
+	
+	opts = fcntl(sock,F_GETFL);
+	opts = (opts | O_NONBLOCK);
+	if (fcntl(sock,F_SETFL,opts) < 0) {
+        perror("fcntl(F_SETFL)");
+        exit(1);
+    }
+    
+	hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
         
 	printf("6858 debug - Address given, assuming address is remote\n");
 	sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
@@ -318,13 +327,13 @@ void *ubertooth_follow_setup(void *arg)
 			perror("Can't get device info");
 			exit(1);
 	}
-
-	// if (hci_create_connection(sock, &bdaddr,
-	// 						htobs(di.pkt_type & ACL_PTYPE_MASK),
-	// 						0, 0x01, &handle, 25000) < 0) {
-	// 		perror("Can't create connection");
-	// 		exit(1);
-	// }
+	
+	if (hci_create_connection(sock, &bdaddr,
+	 						htobs(di.pkt_type & ACL_PTYPE_MASK),
+	 						0, 0x01, &handle, 25000) < 0) {
+	 		perror("Can't create connection");
+	 		exit(1);
+	}
 	sleep(1);
 	cc = 1;
 
@@ -367,7 +376,7 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 	
-	// rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
+	//rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
