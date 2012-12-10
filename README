@@ -109,10 +109,8 @@ What it should be able to do in the future:
 -------------------------------------------------------------------------------
 
 To rebuild plugin-ubertooth for Kismet, go to Kismet install directory:
-$ make && make plugins
-$ sudo make suidinstall
-$ sudo make plugins-install
+$ make && make plugins && sudo make suidinstall && sudo make plugins-install
 
 Debug statements specific to project:
-printf("6.858 debug - <DEBUG COMMENT>\n");
+printf("6858 debug - <DEBUG COMMENT>\n");
 

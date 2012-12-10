@@ -274,14 +274,15 @@ out:
 }
 
 int PacketSource_Ubertooth::OpenSource() {
-
+ 
+        printf("6858 debug - start\n");
         /* Start Ben's code */
 
         int sock, dev_id, delay = 5;
         char *end, ubertooth_device = -1;
         char *bt_dev = "hci0";
         char addr[19] = { 0 };
-        struct libusb_device_handle *devh = NULL;
+        // struct libusb_device_handle *devh = NULL;
         uint32_t clock;
         uint16_t accuracy, handle, offset;
         bdaddr_t bdaddr;
@@ -294,43 +295,43 @@ int PacketSource_Ubertooth::OpenSource() {
 	pn.LAP = strtol("0xf6eeed", &end, 16);
 	pn.UAP = strtol("0x4c", &end, 16);
 
-        dev_id = hci_devid(bt_dev);
-        sock = hci_open_dev(dev_id);
-        hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
-        
-	printf("Address given, assuming address is remote\n");
-	sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
-			pn.UAP,
-			(pn.LAP >> 16) & 0xFF,
-			(pn.LAP >> 8) & 0xFF,
-			pn.LAP & 0xFF
-	);
-	str2ba(addr, &bdaddr);
-	printf("Address: %s\n", addr);
+        // dev_id = hci_devid(bt_dev);
+        // sock = hci_open_dev(dev_id);
+        // hci_read_clock(sock, 0, 0, &clock, &accuracy, 0);
+        // 
+	// printf("6858 debug - Address given, assuming address is remote\n");
+	// sprintf(addr, "00:00:%02X:%02X:%02X:%02X",
+	// 		pn.UAP,
+	// 		(pn.LAP >> 16) & 0xFF,
+	// 		(pn.LAP >> 8) & 0xFF,
+	// 		pn.LAP & 0xFF
+	// );
+	// str2ba(addr, &bdaddr);
+	// printf("6858 debug - Address: %s\n", addr);
 
-	if (hci_devinfo(dev_id, &di) < 0) {
-			perror("Can't get device info");
-			exit(1);
-	}
+	// if (hci_devinfo(dev_id, &di) < 0) {
+	// 		perror("Can't get device info");
+	// 		exit(1);
+	// }
 
-	if (hci_create_connection(sock, &bdaddr,
-							htobs(di.pkt_type & ACL_PTYPE_MASK),
-							0, 0x01, &handle, 25000) < 0) {
-			perror("Can't create connection");
-			exit(1);
-	}
-	sleep(1);
-	cc = 1;
+	// if (hci_create_connection(sock, &bdaddr,
+	// 						htobs(di.pkt_type & ACL_PTYPE_MASK),
+	// 						0, 0x01, &handle, 25000) < 0) {
+	// 		perror("Can't create connection");
+	// 		exit(1);
+	// }
+	// sleep(1);
+	// cc = 1;
 
-	if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-			perror("Reading clock offset failed");
-	}
-	clock += offset;
-	
-	if (cc) {
-		usleep(10000);
-		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-	}
+	// if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
+	// 		perror("Reading clock offset failed");
+	// }
+	// clock += offset;
+	// 
+	// if (cc) {
+	// 	usleep(10000);
+	// 	hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+	// }
 
 	/* End Ben's code */
 
@@ -340,7 +341,7 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 	
-	rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
+	// rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
 
 
 	/* Initialize the pipe, mutex, and reading thread */
