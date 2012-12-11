@@ -265,8 +265,7 @@ void *ubertooth_cap_thread(void *arg)
 		}
 		ubertooth->really_full = 0;
 		fflush(stderr);
-	        // printf("6858 debug - cap_thread loop\n");
-                printf("6858 debug - current channel %d\n", cmd_get_channel(ubertooth->devh));
+        //printf("6858 debug - current channel %d\n", cmd_get_channel(ubertooth->devh));
 	}
 	printf("6858 debug - cap_thread end\n");
 
@@ -283,18 +282,14 @@ void *ubertooth_follow_setup(void *arg)
 	PacketSource_Ubertooth *ubertooth = (PacketSource_Ubertooth *) arg;
 
 	printf("6858 debug - start\n");
-	/* Start Ben's code */
-
+	
 	int sock, dev_id = 5;
-        // int delay = 5;
-        ubertooth->delay = 5;
+    ubertooth->delay = 5;
 	char *end, ubertooth_device = -1;
 	char *bt_dev = "hci0";
 	char addr[19] = { 0 };
-	// uint32_t clock;
 	uint16_t accuracy, handle, offset;
 	bdaddr_t bdaddr;
-	// piconet pn;
 	struct hci_dev_info di;
 	int cc = 0;
 	int opts;
@@ -350,15 +345,13 @@ void *ubertooth_follow_setup(void *arg)
 		hci_disconnect(sock, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
 	}
 
-	/* End Ben's code */
-
 	// Unlock packet thread
-	pthread_mutex_unlock(&(ubertooth->packet_lock)); // 6858
+	pthread_mutex_unlock(&(ubertooth->packet_lock));
 }
 
 int PacketSource_Ubertooth::OpenSource() {
 
-        // Lock packet thread for ubertooth follow setup
+    // Lock packet thread for ubertooth follow setup
 	if (pthread_mutex_init(&packet_lock, NULL) < 0) {
 		_MSG("Ubertooth '" + name + "' failed to initialize pthread mutex: " +
 			 string(strerror(errno)), MSGFLAG_ERROR);
@@ -367,9 +360,9 @@ int PacketSource_Ubertooth::OpenSource() {
 	}
 
 	printf("6858 debug - 1\n");
-	pthread_mutex_lock(&(packet_lock)); // 6858
+	pthread_mutex_lock(&(packet_lock));
 
-        // Ubertooth follow setup
+    // Ubertooth follow setup
 	pthread_create(&follow_thread, NULL, ubertooth_follow_setup, this);
         pthread_join(follow_thread, NULL);
 	
@@ -378,8 +371,6 @@ int PacketSource_Ubertooth::OpenSource() {
 				string(strerror(errno)), MSGFLAG_ERROR);
 		return 0;
 	}
-	
-	/* Inserted code */
 	
 	u64 address = 0;
 	address = (pn.LAP & 0xffffff) | (pn.UAP & 0xff) << 24;
@@ -391,8 +382,6 @@ int PacketSource_Ubertooth::OpenSource() {
 	pn.have_clk27 = 1;
 
 	cmd_start_hopping(devh, delay);
-	
-	/* End inserted code */
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
@@ -533,11 +522,26 @@ int PacketSource_Ubertooth::handle_header(packet* pkt) {
 		} else
 			return 1;
 	}
-	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP)
+	if (piconets[pkt->LAP].have_clk6 && piconets[pkt->LAP].have_UAP) {
+		printf("6858 debug - Setting UAP Works = 0x%x\n", piconets[pkt->LAP].UAP);
 		decode_pkt(pkt, &piconets[pkt->LAP]);
-	else
-		if (UAP_from_header(pkt, &piconets[pkt->LAP]))
+	}
+	else {
+		printf("6858 debug - Packet LAP = 0x%x\n", pkt->LAP);
+		if (pkt->LAP == 0x2AD438) {
+			piconets[pkt->LAP].UAP = 0x76;
+			piconets[pkt->LAP].have_UAP = 1;
+			piconets[pkt->LAP].have_clk27 = 1;
+			pkt->UAP= 0x76;
+			pkt->have_UAP = 1;
+			printf("6858 debug - Setting UAP = 0x%x\n", piconets[pkt->LAP].UAP);
 			decode_pkt(pkt, &piconets[pkt->LAP]);
+		} else {
+			if (UAP_from_header(pkt, &piconets[pkt->LAP])) {
+				decode_pkt(pkt, &piconets[pkt->LAP]);
+			}
+		}
+	}
 	/*
 	 * If this is an inquiry response, saving the piconet state will only
 	 * cause problems later.
