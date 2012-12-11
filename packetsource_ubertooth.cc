@@ -265,7 +265,8 @@ void *ubertooth_cap_thread(void *arg)
 		}
 		ubertooth->really_full = 0;
 		fflush(stderr);
-	        printf("6858 debug - cap_thread loop\n");
+	        // printf("6858 debug - cap_thread loop\n");
+                printf("6858 debug - current channel %d\n", cmd_get_channel(ubertooth->devh));
 	}
 	printf("6858 debug - cap_thread end\n");
 
@@ -300,8 +301,8 @@ void *ubertooth_follow_setup(void *arg)
 
 	init_piconet(&(ubertooth->pn));
 
-	ubertooth->pn.LAP = strtol("828871", &end, 16);
-	ubertooth->pn.UAP = strtol("43", &end, 16);
+	ubertooth->pn.LAP = strtol("2AD438", &end, 16);
+	ubertooth->pn.UAP = strtol("76", &end, 16);
 
 	dev_id = hci_devid(bt_dev);
 	sock = hci_open_dev(dev_id);
