@@ -300,8 +300,8 @@ void *ubertooth_follow_setup(void *arg)
 
 	init_piconet(&(ubertooth->pn));
 
-	ubertooth->pn.LAP = strtol("F6EEED", &end, 16);
-	ubertooth->pn.UAP = strtol("4C", &end, 16);
+	ubertooth->pn.LAP = strtol("828871", &end, 16);
+	ubertooth->pn.UAP = strtol("43", &end, 16);
 
 	dev_id = hci_devid(bt_dev);
 	sock = hci_open_dev(dev_id);
@@ -378,7 +378,20 @@ int PacketSource_Ubertooth::OpenSource() {
 		return 0;
 	}
 	
-	rx_follow(devh, &pn, clock, delay);  //Inserted by Ben
+	/* Inserted code */
+	
+	u64 address = 0;
+	address = (pn.LAP & 0xffffff) | (pn.UAP & 0xff) << 24;
+	cmd_set_bdaddr(devh, address);
+
+	printf("Setting CLKN = 0x%x\n", clock);
+	cmd_set_clock(devh, clock);
+	init_hop_reversal(0, &pn);
+	pn.have_clk27 = 1;
+
+	cmd_start_hopping(devh, delay);
+	
+	/* End inserted code */
 
 	/* Initialize the pipe, mutex, and reading thread */
 	if (pipe(fake_fd) < 0) {
