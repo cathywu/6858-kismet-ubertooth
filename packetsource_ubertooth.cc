@@ -326,21 +326,21 @@ void *ubertooth_follow_setup(void *arg)
 	printf("6858 debug - Address: %s\n", addr);
 
 	if (hci_devinfo(dev_id, &di) < 0) {
-			perror("Can't get device info");
-			exit(1);
+		perror("Can't get device info");
+		exit(1);
 	}
 	
 	if (hci_create_connection(sock, &bdaddr,
-	 						htobs(di.pkt_type & ACL_PTYPE_MASK),
-	 						0, 0x01, &handle, 25000) < 0) {
-	 		perror("Can't create connection");
-	 		exit(1);
+	 	htobs(di.pkt_type & ACL_PTYPE_MASK),
+	 	0, 0x01, &handle, 25000) < 0) {
+	 	perror("Can't create connection");
+	 	exit(1);
 	}
 	sleep(1);
 	cc = 1;
 
 	if (hci_read_clock_offset(sock, handle, &offset, 1000) < 0) {
-			perror("Reading clock offset failed");
+		perror("Reading clock offset failed");
 	}
 	ubertooth->clock += offset;
 	
