@@ -1,10 +1,12 @@
 This modified version of the Kismet-Ubertooth plugin implements channel hopping with a piconet in Kismet (original plugin does not hop channels at all), so that we can follow traffic from a specific Bluetooth device, and so future developers in this area will have a better method by which to capture and analyze Bluetooth traffic.
 
+
 SETUP
 -------------------------------------------------------------------------------
 Requirements (download and set up the following):
 - Kismet [http://www.kismetwireless.net/]
 - Project Ubertooth [http://ubertooth.sourceforge.net/]
+- Wireshark [Ubertooth specific: http://ubertooth.sourceforge.net/usage/build/]
 
 Replace the Kismet-Ubertooth plugin with our modified version:
 $ cd ~/ubertooth/host/kismet (or wherever your Kismet-Ubertooth plugin is)
@@ -12,15 +14,19 @@ $ sudo rm -rf plugin-ubertooth
 $ git clone git@github.com:cathywu/6858-kismet-ubertooth.git plugin-ubertooth
 
 
-USING THIS PLUGIN
+CONFIGURING THIS PLUGIN
 -------------------------------------------------------------------------------
 Our implementation current requires hardcoding the host device's BD_ADDR, which you can set in packetsource_ubertooth.cc > ubertooth_follow_setup() > ubertooth->pn.LAP/pn.UAP:
 
     ubertooth->pn.LAP = strtol("2AD438", &end, 16);
     ubertooth->pn.UAP = strtol("76", &end, 16);
 
-You can find the BD_ADDR of your host machine by running (may require installing BlueZ, libbluetooth):
+You can find the BD_ADDR of the host machine by running on the host device (may require installing BlueZ, libbluetooth):
 $ hcitool dev
+
+The output will look something like:
+    Devices:
+            hci0    00:11:76:2A:D4:38
 
 The LAP is the last 3 bytes of the address. The UAP is the 4th last byte. The top 2 bytes are the NAP, which you don't need. With the UAP/LAP, edit those lines of code (in hex, but exclude the 0x) and rebuild the plugin.
 
@@ -33,6 +39,9 @@ $ rm *.o *.so
 If you have issues, try resetting the Ubertooth:
 $ sudo ubertooth-util -r
 
+
+USING THIS PLUGIN
+-------------------------------------------------------------------------------
 To run Kismet:
 $ sudo kismet
 
@@ -40,13 +49,16 @@ Enable the ubertooth plugin and you will be able to monitor the server console f
 
 Then run wireshark and load up the pcapbtbb file (saved to the directory from which you are running kismet) to examine the Bluetooth packets!
 
+
 NOTES
 -------------------------------------------------------------------------------
 Debug statements specific to project:
 printf("6858 debug - <DEBUG COMMENT>\n");
 
 
-
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
 Kismet-Ubertooth [Original README]
