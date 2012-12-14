@@ -1,4 +1,47 @@
-Kismet-Ubertooth
+This modified version of the Kismet-Ubertooth plugin implements channel hopping with a piconet in Kismet (original plugin does not hop channels at all), so that we can follow traffic from a specific Bluetooth device, and so future developers in this area will have a better method by which to capture and analyze Bluetooth traffic.
+
+SETUP
+-------------------------------------------------------------------------------
+Requirements (download and install the following):
+- Kismet [http://www.kismetwireless.net/]
+- Project Ubertooth [http://ubertooth.sourceforge.net/]
+
+Replace the Kismet-Ubertooth plugin with our modified version:
+$ cd ~/ubertooth/host/kismet (or wherever your Kismet-Ubertooth plugin is)
+$ sudo rm -rf plugin-ubertooth
+$ git clone git@github.com:cathywu/6858-kismet-ubertooth.git plugin-ubertooth
+
+
+USING THIS PLUGIN
+-------------------------------------------------------------------------------
+Our implementation current requires hardcoding the host device's BD_ADDR, which you can find and set in packetsource_ubertooth.cc > ubertooth_follow_setup() > ubertooth->pn.LAP/pn.UAP.
+
+You can find the BD_ADDR of your host machine by running (may require installing BlueZ, libbluetooth):
+$ hcitool dev
+
+The LAP is the last 3 bytes. The UAP is the 4th last byte. The top 2 bytes are the NAP, which you don't need.
+
+To rebuild plugin-ubertooth for Kismet, go to Kismet install directory:
+$ make && make plugins && sudo make suidinstall && sudo make plugins-install
+
+To run Kismet:
+$ sudo kismet
+
+Then, enable the ubertooth plugin and you will be able to monitor the server console for detected devices and piconets.
+
+Then run wireshark and load up the pcapbtbb file (saved to the directory from which you are running kismet) to examine the Bluetooth packets!
+
+NOTES
+-------------------------------------------------------------------------------
+Debug statements specific to project:
+printf("6858 debug - <DEBUG COMMENT>\n");
+
+
+
+
+
+Kismet-Ubertooth [Original README]
+-------------------------------------------------------------------------------
 
 0.  NOT COMPLETE
 
@@ -104,13 +147,4 @@ What it should be able to do in the future:
 
 	To enable pcap logging, the logfile must be turned on by adding
 	'pcapbtbb' to the logtypes= line of the kismet.conf.
-
-
--------------------------------------------------------------------------------
-
-To rebuild plugin-ubertooth for Kismet, go to Kismet install directory:
-$ make && make plugins && sudo make suidinstall && sudo make plugins-install
-
-Debug statements specific to project:
-printf("6858 debug - <DEBUG COMMENT>\n");
 
