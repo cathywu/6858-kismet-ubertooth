@@ -14,20 +14,29 @@ $ git clone git@github.com:cathywu/6858-kismet-ubertooth.git plugin-ubertooth
 
 USING THIS PLUGIN
 -------------------------------------------------------------------------------
-Our implementation current requires hardcoding the host device's BD_ADDR, which you can find and set in packetsource_ubertooth.cc > ubertooth_follow_setup() > ubertooth->pn.LAP/pn.UAP.
+Our implementation current requires hardcoding the host device's BD_ADDR, which you can find and set in packetsource_ubertooth.cc > ubertooth_follow_setup() > ubertooth->pn.LAP/pn.UAP:
+
+    ubertooth->pn.LAP = strtol("2AD438", &end, 16);
+    ubertooth->pn.UAP = strtol("76", &end, 16);
 
 You can find the BD_ADDR of your host machine by running (may require installing BlueZ, libbluetooth):
 $ hcitool dev
 
-The LAP is the last 3 bytes. The UAP is the 4th last byte. The top 2 bytes are the NAP, which you don't need.
+The LAP is the last 3 bytes of the address. The UAP is the 4th last byte. The top 2 bytes are the NAP, which you don't need. With the UAP/LAP, edit those lines of code (in hex, but exclude the 0x) and rebuild the plugin.
 
 To rebuild plugin-ubertooth for Kismet, go to Kismet install directory:
 $ make && make plugins && sudo make suidinstall && sudo make plugins-install
 
+For good measure, you can also "clean" the Kismet-Ubertooth plugin directory:
+$ rm *.o *.so
+
+If you have issues, try resetting the Ubertooth:
+$ sudo ubertooth-util -r
+
 To run Kismet:
 $ sudo kismet
 
-Then, enable the ubertooth plugin and you will be able to monitor the server console for detected devices and piconets.
+Enable the ubertooth plugin and you will be able to monitor the server console for detected devices and piconets.
 
 Then run wireshark and load up the pcapbtbb file (saved to the directory from which you are running kismet) to examine the Bluetooth packets!
 
